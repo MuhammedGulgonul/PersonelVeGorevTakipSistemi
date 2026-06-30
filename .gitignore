@@ -1,0 +1,24 @@
+# Build outputs (Derleme çıktıları)
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio files (Visual Studio dosyaları)
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code files
+.vscode/
+.history/
+
+# Rider / IntelliJ files
+.idea/
+
+# OS files (İşletim sistemi geçici dosyaları)
+Thumbs.db
+ehthumbs.db
+Desktop.ini
