@@ -20,7 +20,7 @@ Projenin geliştirilmesinde kullanılacak temel yazılım ve araçların kurulum
 
 ### 2. Visual Studio Üzerinde Katmanlı Mimarinin Yapılandırılması
 Projenin kurumsal standartlara uygun olarak yönetilebilir olması amacıyla Visual Studio 2022 üzerinde katmanlı mimari iskeleti kurulmuştur:
-* Visual Studio üzerinde boş bir çözüm (**Solution**) oluşturulmuştur.
+* Visual Studio üzerinde boş bir çözüm oluşturulmuştur.
 * Çözüme sırasıyla **Core**, **DataAccess**, **Business** ve **WebUI** projeleri uygun şablonlar seçilerek eklenmiştir.
 * Projelerin aralarında veri alışverişi yapabilmesi için Visual Studio üzerinden gerekli proje referansları tanımlanmıştır.
 
@@ -33,12 +33,12 @@ Proje kodlarının sürüm takibi ve güvenli bir şekilde yedeklenmesi için Gi
 * Projenin genel amacını açıklayan `README.md` dosyası oluşturulmuştur.
 * Projenin bu başlangıç yapısı ilk commit oluşturularak GitHub uzak deposuna yüklenmiştir.
 
-![Git Başlangıcı](images/git_bash_init.png)  
+![Git Başlangıcı](images/git_bash_init.png)
 
-![Git Push](images/git_push.png)  
+![Git Push](images/git_push.png)
 
 ---
 
 ## Gelecek Haftanın Planı
-* Veritabanı tablolarına karşılık gelen sınıfların (Entity) yazılması.
-* Entity Framework Core (EF Core) bağlantısının yapılandırılması ve tabloların SQL Server veritabanında oluşturulması.
+* Veritabanı tablolarına karşılık gelen sınıfların yazılması.
+* Entity Framework Core bağlantısının yapılandırılması ve tabloların SQL Server veritabanında oluşturulması.
