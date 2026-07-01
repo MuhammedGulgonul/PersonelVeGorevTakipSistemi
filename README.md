@@ -14,5 +14,5 @@ Bu proje, şirketlerde personel, departman ve görev süreçlerinin yönetilmesi
 
 ## Kullanılan Teknolojiler
 - **Backend:** C# / .NET 8.0 ASP.NET Core MVC
-- **Veritabanı & ORM:** MS SQL Server & Entity Framework Core (Code-First)
+- **Veritabanı & ORM:** MS SQL Server & Entity Framework Core 
 - **Frontend:** HTML, CSS, Bootstrap, JavaScript & jQuery

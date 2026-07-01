@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonelVeGorevTakipSistemi.Core", "PersonelVeGorevTakipSistemi.Core\PersonelVeGorevTakipSistemi.Core.csproj", "{CF46996C-EE44-4720-B17A-99A5F78F7EF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonelVeGorevTakipSistemi.DataAccess", "PersonelVeGorevTakipSistemi.DataAccess\PersonelVeGorevTakipSistemi.DataAccess.csproj", "{55E72623-FEF4-472A-9CFA-768B1DE68746}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonelVeGorevTakipSistemi.Business", "PersonelVeGorevTakipSistemi.Business\PersonelVeGorevTakipSistemi.Business.csproj", "{F8FBA01A-48B7-4E9E-A70C-5CA9EAC52427}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonelVeGorevTakipSistemi.WebUI", "PersonelVeGorevTakipSistemi.WebUI\PersonelVeGorevTakipSistemi.WebUI.csproj", "{F72D61F8-4980-47A5-9A66-08C7F551D4CD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CF46996C-EE44-4720-B17A-99A5F78F7EF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF46996C-EE44-4720-B17A-99A5F78F7EF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF46996C-EE44-4720-B17A-99A5F78F7EF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF46996C-EE44-4720-B17A-99A5F78F7EF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55E72623-FEF4-472A-9CFA-768B1DE68746}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55E72623-FEF4-472A-9CFA-768B1DE68746}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55E72623-FEF4-472A-9CFA-768B1DE68746}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55E72623-FEF4-472A-9CFA-768B1DE68746}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8FBA01A-48B7-4E9E-A70C-5CA9EAC52427}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8FBA01A-48B7-4E9E-A70C-5CA9EAC52427}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8FBA01A-48B7-4E9E-A70C-5CA9EAC52427}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8FBA01A-48B7-4E9E-A70C-5CA9EAC52427}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F72D61F8-4980-47A5-9A66-08C7F551D4CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F72D61F8-4980-47A5-9A66-08C7F551D4CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F72D61F8-4980-47A5-9A66-08C7F551D4CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F72D61F8-4980-47A5-9A66-08C7F551D4CD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
