@@ -8,15 +8,57 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
 html {
   position: relative;
   min-height: 100%;
 }
 
+/* Uygulamanin genel arka planini krem-beyaz tonu yapiyoruz */
 body {
   margin-bottom: 60px;
+  background-color: #fdfbf7;
+  color: #453e34;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Gunes sarisi ve altin tonlarinda butonlar ve bilesenler */
+.btn-primary {
+  background-color: #d97706 !important;
+  border-color: #d97706 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: #b45309 !important;
+  border-color: #b45309 !important;
+}
+
+.btn-outline-primary {
+  color: #d97706 !important;
+  border-color: #d97706 !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+}
+
+.bg-primary {
+  background-color: #d97706 !important;
+}
+
+.text-primary {
+  color: #d97706 !important;
+}
+
+/* Form girdilerinin odaklanma (focus) renkleri */
+.form-control:focus {
+  border-color: #eab308;
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.25);
+}
+
+/* Ust Menu (Navbar) - Soluk ve Koyu Sicak Tas Rengi */
+.navbar-custom {
+  background-color: #2e2c29 !important;
 }
