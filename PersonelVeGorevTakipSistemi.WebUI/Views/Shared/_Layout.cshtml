@@ -21,7 +21,7 @@
                     <ul class="navbar-nav flex-grow-1">
                         @if (User.Identity.IsAuthenticated)
                         {
-                            @if (User.IsInRole("Admin"))
+                            @if (User.IsInRole("Yönetici"))
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-white" asp-controller="Home" asp-action="Index">Dashboard</a>

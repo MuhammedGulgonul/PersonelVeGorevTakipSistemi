@@ -42,7 +42,8 @@ namespace PersonelVeGorevTakipSistemi.DataAccess
                     LastName = "Yılmaz",
                     Email = "admin@sirket.com",
                     PasswordHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", 
-                    Role = "Admin",
+                    Role = "Yönetici",
+                    Title = "Genel Müdür",
                     IsActive = true,
                     CreatedDate = new DateTime(2026, 7, 1),
                     DepartmentId = 1

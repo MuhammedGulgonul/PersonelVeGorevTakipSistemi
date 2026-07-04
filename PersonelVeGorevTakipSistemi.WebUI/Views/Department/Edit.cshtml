@@ -1,0 +1,46 @@
+@model PersonelVeGorevTakipSistemi.Core.Entities.Department
+
+@{
+    ViewData["Title"] = "Departman Düzenle";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-primary text-white py-3 rounded-top-3">
+                    <h5 class="card-title mb-0 fw-bold">Departman Düzenle</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" asp-controller="Department" method="post">
+                        <!-- Model Hatalari -->
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Hangi departmanin guncellenecegini belirten gizli Id alani -->
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Departman Adi -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-semibold text-secondary">Departman Adı</label>
+                            <input asp-for="Name" class="form-control py-2" placeholder="Örn: Bilgi İşlem" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <!-- Aciklama -->
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label fw-semibold text-secondary">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control py-2" rows="4" placeholder="Departmanın görev alanlarını ve sorumluluklarını kısaca açıklayın"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">İptal</a>
+                            <button type="submit" class="btn btn-primary px-4 py-2">Güncelle</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

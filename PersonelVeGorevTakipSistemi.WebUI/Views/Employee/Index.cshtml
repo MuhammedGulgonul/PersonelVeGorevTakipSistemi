@@ -1,0 +1,128 @@
+@model List<PersonelVeGorevTakipSistemi.Core.Entities.Employee>
+
+@{
+    ViewData["Title"] = "Personel Listesi";
+}
+
+<div class="container mt-4">
+    <!-- Baslik ve Yeni Ekle Butonu -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark mb-0">Personeller</h2>
+        <a asp-action="Create" asp-controller="Employee" class="btn btn-primary px-4 py-2">
+            <i class="bi bi-person-plus me-1"></i> Yeni Personel Ekle
+        </a>
+    </div>
+
+    <!-- Basari veya Hata Mesajlari -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+        </div>
+    }
+
+    <!-- Personel Tablosu -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3 px-4" style="width: 8%;">ID</th>
+                            <th class="py-3" style="width: 20%;">Adı Soyadı</th>
+                            <th class="py-3" style="width: 17%;">E-posta</th>
+                            <th class="py-3" style="width: 15%;">Ünvan</th>
+                            <th class="py-3" style="width: 15%;">Departman</th>
+                            <th class="py-3" style="width: 10%;">Rol</th>
+                            <th class="py-3" style="width: 8%;">Durum</th>
+                            <th class="py-3 px-4 text-end" style="width: 7%;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-secondary">
+                                    Kayıtlı personel bulunamadı.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="px-4 fw-semibold text-secondary">#@item.Id</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@item.FirstName @item.LastName</div>
+                                        @if (item.IsPasswordResetRequested)
+                                        {
+                                            <span class="badge bg-warning text-dark mt-1" style="font-size: 11px;">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Şifre Talebi Var!
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-secondary">@item.Email</td>
+                                    <td class="text-secondary">@item.Title</td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">@(item.Department != null ? item.Department.Name : "Belirtilmemiş")</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(item.Role == "Admin" ? "bg-dark" : "bg-secondary")">
+                                            @item.Role
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge bg-success">Aktif</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Pasif</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 text-end">
+                                        <!-- Şifre Sıfırlama Butonu (Sadece Talep Varsa Görünür) -->
+                                        @if (item.IsPasswordResetRequested)
+                                        {
+                                            <form asp-action="ResetPassword" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bu personelin şifresini 123456 olarak sıfırlamak istediğinizden emin misiniz?');">
+                                                <button type="submit" class="btn btn-sm btn-warning text-dark me-1" title="Şifreyi 123456 Yap">
+                                                    Şifre Sıfırla
+                                                </button>
+                                            </form>
+                                        }
+
+                                        <!-- Düzenle Butonu -->
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">
+                                            Düzenle
+                                        </a>
+
+                                        <!-- Aktiflik Durum Değiştirme Butonu (Kendi kendini pasif yapmasın diye kontrol) -->
+                                        @if (User.Identity.Name != item.FirstName + " " + item.LastName)
+                                        {
+                                            <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                    @(item.IsActive ? "Pasifleştir" : "Aktifleştir")
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

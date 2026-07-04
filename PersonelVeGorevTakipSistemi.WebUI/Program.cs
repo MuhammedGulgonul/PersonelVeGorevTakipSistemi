@@ -23,6 +23,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 // İş mantığı servislerimizi sisteme kaydediyoruz
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<DepartmentService>();
+builder.Services.AddScoped<EmployeeService>();
 
 var app = builder.Build();
 

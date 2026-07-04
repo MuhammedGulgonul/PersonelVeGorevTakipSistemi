@@ -1,0 +1,98 @@
+@model PersonelVeGorevTakipSistemi.Core.Entities.Employee
+
+@{
+    ViewData["Title"] = "Yeni Personel Ekle";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-primary text-white py-3 rounded-top-3">
+                    <h5 class="card-title mb-0 fw-bold">Yeni Personel Ekle</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" asp-controller="Employee" method="post">
+                        <!-- Model Hatalari -->
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <!-- Ad -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label fw-semibold text-secondary">Adı</label>
+                                <input asp-for="FirstName" class="form-control py-2" required placeholder="Örn: Mehmet" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+
+                            <!-- Soyad -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label fw-semibold text-secondary">Soyadı</label>
+                                <input asp-for="LastName" class="form-control py-2" required placeholder="Örn: Demir" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- E-posta -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label fw-semibold text-secondary">E-posta Adresi</label>
+                                <input asp-for="Email" type="email" class="form-control py-2" required placeholder="ad@sirket.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <!-- Sifre -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PasswordHash" class="form-label fw-semibold text-secondary">Giriş Şifresi</label>
+                                <input asp-for="PasswordHash" type="password" class="form-control py-2" required placeholder="En az 6 karakter girin" />
+                                <span asp-validation-for="PasswordHash" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Ünvan -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Title" class="form-label fw-semibold text-secondary">Ünvan / Görevi</label>
+                                <input asp-for="Title" class="form-control py-2" required placeholder="Örn: Yazılım Mühendisi" />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <!-- Departman Secimi -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DepartmentId" class="form-label fw-semibold text-secondary">Departman</label>
+                                <select asp-for="DepartmentId" class="form-select py-2" required>
+                                    <option value="">Departman Seçiniz</option>
+                                    @if (ViewBag.Departments != null)
+                                    {
+                                        foreach (var dept in ViewBag.Departments)
+                                        {
+                                            <option value="@dept.Id">@dept.Name</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Rol Secimi -->
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Role" class="form-label fw-semibold text-secondary">Sistem Rolü</label>
+                                <select asp-for="Role" class="form-select py-2" required>
+                                    <option value="Çalışan">Çalışan</option>
+                                    <option value="Yönetici">Yönetici</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">İptal</a>
+                            <button type="submit" class="btn btn-primary px-4 py-2">Kaydet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
