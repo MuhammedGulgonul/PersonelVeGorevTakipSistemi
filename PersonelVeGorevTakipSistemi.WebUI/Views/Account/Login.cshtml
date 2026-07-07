@@ -108,9 +108,10 @@
             <a asp-action="ForgotPassword" asp-controller="Account" class="text-decoration-none small" style="color: #d97706;">Şifremi Unuttum</a>
         </div>
 
-        <!-- Giriş Butonu -->
-        <div class="d-grid">
+        <!-- Giriş Butonları -->
+        <div class="d-grid gap-2">
             <button type="submit" class="btn btn-primary">Giriş Yap</button>
+            <button type="button" id="quickLoginBtn" class="btn btn-outline-warning text-dark fw-bold border-2">Test Girişi (Yönetici)</button>
         </div>
     </form>
 </div>
@@ -118,5 +119,15 @@
 <!-- jQuery ve Bootstrap Validation Kütüphaneleri -->
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#quickLoginBtn").click(function() {
+            // E-posta ve şifre alanlarını doldur ve formu gönder
+            $("input[name='Email']").val("admin@sirket.com");
+            $("input[name='Password']").val("123456");
+            $("form").submit();
+        });
+    });
+</script>
 </body>
 </html>

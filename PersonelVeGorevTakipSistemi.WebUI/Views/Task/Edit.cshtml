@@ -1,0 +1,96 @@
+@model PersonelVeGorevTakipSistemi.Core.Entities.Task
+@using PersonelVeGorevTakipSistemi.Core.Enums
+@using TaskState = PersonelVeGorevTakipSistemi.Core.Enums.TaskState
+
+@{
+    ViewData["Title"] = "Görev Düzenle";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-primary text-white py-3 rounded-top-3">
+                    <h5 class="card-title mb-0 fw-bold">Görev Düzenle</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" asp-controller="Task" method="post">
+                        <!-- Model Hatalari -->
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Gizli Id Alani -->
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Görev Başlığı -->
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-semibold text-secondary">Görev Başlığı</label>
+                            <input asp-for="Title" class="form-control py-2" required placeholder="Görevi açıklayan kısa bir başlık girin" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <!-- Açıklama -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-semibold text-secondary">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control py-2" rows="4" required placeholder="Görevin detaylarını yazın"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <!-- Öncelik Derecesi -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Priority" class="form-label fw-semibold text-secondary">Öncelik Derecesi</label>
+                                <select asp-for="Priority" class="form-select py-2" required>
+                                    <option value="Low" selected="@(Model.Priority == TaskPriority.Low ? "selected" : null)">Düşük</option>
+                                    <option value="Medium" selected="@(Model.Priority == TaskPriority.Medium ? "selected" : null)">Orta</option>
+                                    <option value="High" selected="@(Model.Priority == TaskPriority.High ? "selected" : null)">Yüksek</option>
+                                </select>
+                                <span asp-validation-for="Priority" class="text-danger"></span>
+                            </div>
+
+                            <!-- Görev Durumu -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Status" class="form-label fw-semibold text-secondary">Görev Durumu</label>
+                                <select asp-for="Status" class="form-select py-2" required>
+                                    <option value="Pending" selected="@(Model.Status == TaskState.Pending ? "selected" : null)">Yapılacak (Beklemede)</option>
+                                    <option value="InProgress" selected="@(Model.Status == TaskState.InProgress ? "selected" : null)">Yapılıyor (Aktif)</option>
+                                    <option value="Completed" selected="@(Model.Status == TaskState.Completed ? "selected" : null)">Tamamlandı (Bitti)</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Bitiş Tarihi -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DueDate" class="form-label fw-semibold text-secondary">Son Teslim Tarihi</label>
+                                <input asp-for="DueDate" type="date" class="form-control py-2" required value="@Model.DueDate.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="DueDate" class="text-danger"></span>
+                            </div>
+
+                            <!-- Atanan Personel -->
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="EmployeeId" class="form-label fw-semibold text-secondary">Atanan Personel</label>
+                                <select asp-for="EmployeeId" class="form-select py-2" required>
+                                    @if (ViewBag.Employees != null)
+                                    {
+                                        foreach (var emp in ViewBag.Employees)
+                                        {
+                                            <option value="@emp.Id" selected="@(emp.Id == Model.EmployeeId ? "selected" : null)">@emp.FirstName @emp.LastName (@(emp.Department != null ? emp.Department.Name : "Departmansız"))</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">İptal</a>
+                            <button type="submit" class="btn btn-primary px-4 py-2">Güncelle</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
