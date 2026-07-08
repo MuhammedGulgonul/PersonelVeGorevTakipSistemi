@@ -1,0 +1,212 @@
+@{
+    ViewData["Title"] = "Yönetici Gösterge Paneli";
+}
+
+<div class="container mt-4 animate-fade-in">
+    <!-- Baslik -->
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark mb-1">Yönetici Gösterge Paneli</h2>
+        <p class="text-secondary small">Şirket genelindeki departman, personel ve görev istatistiklerini takip edin</p>
+    </div>
+
+    <!-- 1. SIRA: GENEL İSTATİSTİK KARTLARI -->
+    <div class="row g-4 mb-4">
+        <!-- Departman Sayisi Karti -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3 bg-white p-3 border-start border-warning border-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold d-block mb-1">Toplam Departman</span>
+                        <h2 class="fw-bold text-dark mb-0">@ViewBag.TotalDepartments</h2>
+                    </div>
+                    <div class="bg-warning bg-opacity-25 p-3 rounded-circle text-warning">
+                        <i class="bi bi-diagram-3 fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personel Sayisi Karti -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3 bg-white p-3 border-start border-primary border-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold d-block mb-1">Toplam Personel</span>
+                        <h2 class="fw-bold text-dark mb-0">@ViewBag.TotalEmployees</h2>
+                    </div>
+                    <div class="p-3 rounded-circle" style="background-color: rgba(217, 119, 6, 0.1); color: #d97706;">
+                        <i class="bi bi-people fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gorev Sayisi Karti -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3 bg-white p-3 border-start border-success border-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold d-block mb-1">Toplam Görev</span>
+                        <h2 class="fw-bold text-dark mb-0">@ViewBag.TotalTasks</h2>
+                    </div>
+                    <div class="bg-success bg-opacity-25 p-3 rounded-circle text-success">
+                        <i class="bi bi-list-check fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. SIRA: GRAFİKLER -->
+    <div class="row g-4">
+        <!-- Gorev Durumlari Doughnut Grafik -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3 bg-white h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart me-2 text-primary"></i> Görev Süreç Durumu</h6>
+                </div>
+                <div class="card-body p-4 d-flex align-items-center justify-content-center" style="min-height: 320px;">
+                    @if (ViewBag.TotalTasks == 0)
+                    {
+                        <div class="text-secondary small">Henüz veri bulunmamaktadır.</div>
+                    }
+                    else
+                    {
+                        <div class="w-100" style="height: 280px; position: relative;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Gorev Oncelikleri Bar Grafik -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3 bg-white h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart me-2 text-primary"></i> Görev Öncelik Dağılımı</h6>
+                </div>
+                <div class="card-body p-4 d-flex align-items-center justify-content-center" style="min-height: 320px;">
+                    @if (ViewBag.TotalTasks == 0)
+                    {
+                        <div class="text-secondary small">Henüz veri bulunmamaktadır.</div>
+                    }
+                    else
+                    {
+                        <div class="w-100" style="height: 280px; position: relative;">
+                            <canvas id="priorityChart"></canvas>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Animasyon Efektleri -->
+<style>
+    .animate-fade-in {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- Chart.js Kutuphanesi ve Grafikleri Cizen Scriptler -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const totalTasks = @ViewBag.TotalTasks;
+        
+        if (totalTasks > 0) {
+            // 1. GÖREV DURUMU DAİRESEL (DOUGHNUT) GRAFİK
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Yapılacak', 'Yapılıyor', 'Tamamlandı'],
+                    datasets: [{
+                        data: [@ViewBag.PendingTasks, @ViewBag.InProgressTasks, @ViewBag.CompletedTasks],
+                        backgroundColor: ['#6b7280', '#eab308', '#22c55e'], // Tasarim krem/altin rengine uygun sirasiyla: Gri, Altin Sarisi, Zümrüt Yeşili
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. GÖREV ÖNCELİĞİ SÜTUN (BAR) GRAFİK
+            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+            new Chart(priorityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Düşük', 'Orta', 'Yüksek'],
+                    datasets: [{
+                        label: 'Görev Sayısı',
+                        data: [@ViewBag.LowPriority, @ViewBag.MediumPriority, @ViewBag.HighPriority],
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444'], // Mavi, Turuncu, Kirmizi
+                        borderRadius: 6,
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Tek seri oldugu icin lejanti gizliyoruz
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>

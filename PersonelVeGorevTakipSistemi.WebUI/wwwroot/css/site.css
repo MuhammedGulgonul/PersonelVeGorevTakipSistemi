@@ -58,7 +58,207 @@ body {
   box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.25);
 }
 
-/* Ust Menu (Navbar) - Soluk ve Koyu Sicak Tas Rengi */
+/* Ust Menu (Navbar) - Klasik ve Premium Koyu Sıcak Taş Tasarımı */
 .navbar-custom {
-  background-color: #2e2c29 !important;
+  margin: 0 !important; /* Klasik, ekranı tam kaplayan yerleşim */
+  background: linear-gradient(180deg, #2e2c29 0%, #1c1a18 100%) !important; /* Premium koyu gradyan */
+  border-bottom: 2px solid #d97706 !important; /* Altın sarısı sınır çizgisi */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: 0 !important; /* Köşe yuvarlamalarını kaldırıyoruz */
+}
+
+/* Navbar Logo (Marka) Klasik Görünüm */
+.navbar-custom .navbar-brand {
+  font-size: 18px;
+  color: #ffffff !important;
+  transition: all 0.3s ease;
+}
+.navbar-custom .navbar-brand:hover {
+  color: #eab308 !important; /* Üzerine gelince altın sarısı olur */
+}
+
+/* Navbar Link Hover Alt Çizgi Kayma Animasyonu */
+.navbar-custom .nav-link {
+  position: relative;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 0.5rem 1rem !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  transition: color 0.25s ease !important;
+}
+
+.navbar-custom .nav-link:hover {
+  color: #eab308 !important;
+}
+
+/* Altından kayan çizgi belirteci */
+.navbar-custom .nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: #eab308;
+  transition: all 0.25s ease;
+  transform: translateX(-50%);
+}
+
+.navbar-custom .nav-link:hover::after {
+  width: 75%;
+}
+
+/* Kullanıcı Profil Alanı */
+.profile-dropdown .dropdown-toggle {
+  transition: color 0.25s ease;
+}
+.profile-dropdown .dropdown-toggle::after {
+  display: inline-block;
+  margin-left: 0.4em;
+  vertical-align: 0.25em;
+  content: "";
+  border-top: 0.3em solid;
+  border-right: 0.3em solid transparent;
+  border-bottom: 0;
+  border-left: 0.3em solid transparent;
+}
+.profile-dropdown .dropdown-toggle:hover {
+  color: #eab308 !important;
+}
+
+/* Kullanıcı Menüsü Açılır Kutu Tasarımı */
+.navbar-custom .dropdown-menu {
+  background-color: #ffffff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e5e2db !important;
+  padding: 0.4rem 0 !important;
+  margin-top: 8px !important;
+}
+.navbar-custom .dropdown-item {
+  padding: 0.5rem 1.25rem !important;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+.navbar-custom .dropdown-item:hover {
+  background-color: #f7f4ee !important;
+}
+
+/* -------------------------------------------------------------
+   YENİ PREMIUM GÖRSEL VE ANİMASYON İYİLEŞTİRMELERİ
+   ------------------------------------------------------------- */
+
+/* 1. Sayfa Açılış Animasyonu (Global Fade-In) */
+.container, .card, .table-responsive {
+  animation: globalFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes globalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 2. Navbar Link Geçiş Animasyonları */
+.navbar-nav .nav-link {
+  transition: color 0.2s ease, transform 0.2s ease !important;
+}
+.navbar-nav .nav-link:hover {
+  transform: translateY(-1px);
+}
+
+/* 3. Butonların Hover Süzülme Animasyonu */
+.btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15) !important;
+}
+.btn-outline-danger:hover, .btn-danger:hover {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15) !important;
+}
+
+/* 4. Form Elemanlarının Yumuşak Odaklanma (Focus) Geçişleri */
+.form-control, .form-select {
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+}
+
+/* 5. Kartların Hover Süzülme ve Gölge Derinleşme Animasyonu */
+.card {
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+}
+.card:hover {
+  box-shadow: 0 10px 25px rgba(69, 62, 52, 0.12) !important;
+}
+
+/* 6. Tablo Satırlarının Hover Rengi Geçişi */
+.table-hover tbody tr {
+  transition: background-color 0.15s ease-in-out !important;
+}
+.table-hover tbody tr:hover {
+  background-color: #f7f4ee !important; /* Temamıza uygun hafif koyu krem rengi */
+}
+
+/* 7. Görev Kartı Başlığı Renk Geçişi */
+.task-title-link {
+  transition: color 0.2s ease !important;
+}
+.task-title-link:hover {
+  color: #d97706 !important;
+}
+
+/* 8. Görev Kartı Eylem Butonları (Çerçeve ve İkon Animasyonları) */
+.task-action-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 11px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background-color: #f5f3ef !important; /* Krem-gri dairesel çerçeve */
+  border: 1px solid #e1ded6 !important;
+  padding: 0 !important;
+  cursor: pointer;
+}
+
+/* Düzenle Butonu (Kalem) */
+.task-action-btn.edit-btn {
+  color: #4b5563 !important;
+}
+.task-action-btn.edit-btn:hover {
+  background-color: #d97706 !important; /* Altın sarısı */
+  color: #ffffff !important;
+  transform: scale(1.15) rotate(-12deg) !important;
+  border-color: #d97706 !important;
+}
+
+/* Sil Butonu (Çöp Kutusu) */
+.task-action-btn.delete-btn {
+  color: #ef4444 !important;
+  background-color: #fef2f2 !important; /* Çok hafif kırmızımsı arka plan */
+  border-color: #fee2e2 !important;
+}
+.task-action-btn.delete-btn:hover {
+  background-color: #ef4444 !important; /* Tam Kırmızı */
+  color: #ffffff !important;
+  transform: scale(1.15) rotate(12deg) !important;
+  border-color: #ef4444 !important;
+}
+
+/* 9. Görev Kartları Sürüklenebilir Fare İmleçleri (El Simgesi) */
+.kanban-column-cards .card {
+  cursor: grab !important;
+  cursor: -webkit-grab !important; /* Safari uyumluluğu */
+}
+.kanban-column-cards .card:active {
+  cursor: grabbing !important;
+  cursor: -webkit-grabbing !important;
 }

@@ -43,6 +43,7 @@ namespace PersonelVeGorevTakipSistemi.Business.Services
             return _context.Tasks
                 .Include(t => t.Employee)
                 .ThenInclude(e => e.Department)
+                .Include(t => t.TaskFiles)
                 .FirstOrDefault(t => t.Id == id);
         }
 

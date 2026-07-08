@@ -17,7 +17,11 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        return View();
+        if (User.IsInRole("Yönetici"))
+        {
+            return RedirectToAction("Index", "Dashboard");
+        }
+        return RedirectToAction("Index", "Task");
     }
 
     public IActionResult Privacy()

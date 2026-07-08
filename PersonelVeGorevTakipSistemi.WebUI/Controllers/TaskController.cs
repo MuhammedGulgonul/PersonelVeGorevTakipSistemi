@@ -7,6 +7,10 @@ using PersonelVeGorevTakipSistemi.Business.Services;
 using PersonelVeGorevTakipSistemi.Core.Enums;
 using Task = PersonelVeGorevTakipSistemi.Core.Entities.Task;
 
+using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+
 namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 {
     // Giriş yapmış tüm personellerin erişebileceği görev yönetim kontrolcüsü
@@ -16,12 +20,16 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         private readonly TaskService _taskService;
         private readonly EmployeeService _employeeService;
         private readonly DepartmentService _departmentService;
+        private readonly FileService _fileService;
+        private readonly IWebHostEnvironment _environment;
 
-        public TaskController(TaskService taskService, EmployeeService employeeService, DepartmentService departmentService)
+        public TaskController(TaskService taskService, EmployeeService employeeService, DepartmentService departmentService, FileService fileService, IWebHostEnvironment environment)
         {
             _taskService = taskService;
             _employeeService = employeeService;
             _departmentService = departmentService;
+            _fileService = fileService;
+            _environment = environment;
         }
 
         // Giriş yapan kullanıcının veritabanındaki Id değerini döndürür
@@ -160,10 +168,11 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             _taskService.UpdateStatus(id, status);
 
-            // İstek AJAX ile yapıldıysa JSON formatında başarı dönüyoruz
+            // İstek AJAX ile yapıldıysa kartın güncel HTML parçacığını (butonları yenilenmiş olarak) dönüyoruz
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                return Json(new { success = true });
+                var updatedTask = _taskService.GetById(id);
+                return PartialView("_TaskCardPartial", updatedTask);
             }
 
             TempData["SuccessMessage"] = "Görev durumu başarıyla güncellenmiştir.";
@@ -182,6 +191,129 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             _taskService.Delete(id);
             TempData["SuccessMessage"] = "Görev başarıyla silinmiştir.";
             return RedirectToAction("Index");
+        }
+
+        // Görev detay ekranını gösteren metot
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            var task = _taskService.GetById(id);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            // Güvenlik Kontrolü: Çalışan sadece kendisine atanmış görevi görebilir
+            if (!IsYönetici && task.EmployeeId != CurrentUserId)
+            {
+                TempData["ErrorMessage"] = "Bu görevin detaylarını görme yetkiniz bulunmamaktadır.";
+                return RedirectToAction("Index");
+            }
+
+            return View(task);
+        }
+
+        // Göreve dosya yükleyen metot (Maks 5MB ve PDF/Görsel kontrolü ile)
+        [HttpPost]
+        public IActionResult UploadFile(int taskId, IFormFile file)
+        {
+            var task = _taskService.GetById(taskId);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            // Güvenlik Kontrolü: Çalışan sadece kendi görevine dosya yükleyebilir
+            if (!IsYönetici && task.EmployeeId != CurrentUserId)
+            {
+                TempData["ErrorMessage"] = "Bu göreve dosya yükleme yetkiniz bulunmamaktadır.";
+                return RedirectToAction("Index");
+            }
+
+            // Dosya seçilmiş mi kontrolü
+            if (file == null || file.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Lütfen yüklemek için bir dosya seçin.";
+                return RedirectToAction("Details", new { id = taskId });
+            }
+
+            // 5MB Boyut Sınırı Kontrolü
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                TempData["ErrorMessage"] = "Yüklenecek dosya boyutu en fazla 5MB olmalıdır.";
+                return RedirectToAction("Details", new { id = taskId });
+            }
+
+            // Dosya Uzantısı Kontrolü (PDF ve Resimler)
+            string ext = Path.GetExtension(file.FileName).ToLower();
+            if (ext != ".pdf" && ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif")
+            {
+                TempData["ErrorMessage"] = "Yalnızca PDF ve Görsel (JPG, JPEG, PNG, GIF) formatlarında dosya yükleyebilirsiniz.";
+                return RedirectToAction("Details", new { id = taskId });
+            }
+
+            // Dosyayı sunucuya ve veritabanına kaydediyoruz
+            string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+            _fileService.SaveFile(taskId, file.FileName, file.ContentType, file.OpenReadStream(), uploadsFolder);
+
+            TempData["SuccessMessage"] = "Dosya başarıyla yüklenmiştir.";
+            return RedirectToAction("Details", new { id = taskId });
+        }
+
+        // Dosya indirme işlemini yapan metot
+        [HttpGet]
+        public IActionResult DownloadFile(int id)
+        {
+            var taskFile = _fileService.GetById(id);
+            if (taskFile == null)
+            {
+                return NotFound();
+            }
+
+            var task = _taskService.GetById(taskFile.TaskId);
+            
+            // Güvenlik Kontrolü: Çalışan sadece yetkili olduğu görevin dosyasını indirebilir
+            if (!IsYönetici && task.EmployeeId != CurrentUserId)
+            {
+                return Forbid();
+            }
+
+            string relativePath = taskFile.FilePath.Replace("/uploads/", "");
+            string physicalPath = Path.Combine(_environment.WebRootPath, "uploads", relativePath);
+
+            if (!System.IO.File.Exists(physicalPath))
+            {
+                return NotFound();
+            }
+
+            byte[] fileBytes = System.IO.File.ReadAllBytes(physicalPath);
+            return File(fileBytes, taskFile.ContentType, taskFile.FileName);
+        }
+
+        // Dosya silme işlemini yapan metot
+        [HttpPost]
+        public IActionResult DeleteFile(int id)
+        {
+            var taskFile = _fileService.GetById(id);
+            if (taskFile == null)
+            {
+                return NotFound();
+            }
+
+            var task = _taskService.GetById(taskFile.TaskId);
+
+            // Güvenlik Kontrolü: Çalışan sadece kendi görevine ait dosyayı silebilir
+            if (!IsYönetici && task.EmployeeId != CurrentUserId)
+            {
+                TempData["ErrorMessage"] = "Bu dosyayı silme yetkiniz bulunmamaktadır.";
+                return RedirectToAction("Index");
+            }
+
+            string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+            _fileService.DeleteFile(id, uploadsFolder);
+
+            TempData["SuccessMessage"] = "Dosya başarıyla silinmiştir.";
+            return RedirectToAction("Details", new { id = taskFile.TaskId });
         }
     }
 }
