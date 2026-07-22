@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonelVeGorevTakipSistemi.Business.Services;
 using PersonelVeGorevTakipSistemi.Core.Entities;
+using PersonelVeGorevTakipSistemi.DataAccess;
+using PersonelVeGorevTakipSistemi.WebUI.Helpers;
 
 namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 {
@@ -11,11 +13,15 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
     {
         private readonly EmployeeService _employeeService;
         private readonly DepartmentService _departmentService;
+        private readonly ReportService _reportService;
+        private readonly AppDbContext _context;
 
-        public EmployeeController(EmployeeService employeeService, DepartmentService departmentService)
+        public EmployeeController(EmployeeService employeeService, DepartmentService departmentService, ReportService reportService, AppDbContext context)
         {
             _employeeService = employeeService;
             _departmentService = departmentService;
+            _reportService = reportService;
+            _context = context;
         }
 
         // Personelleri listeleyen sayfa
@@ -24,6 +30,19 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         {
             var employees = _employeeService.GetAll();
             return View(employees);
+        }
+
+        // Personel listesini Excel olarak indirmeyi saglayan metot
+        [HttpGet]
+        public IActionResult ExportExcel()
+        {
+            var employees = _employeeService.GetAll();
+            var fileBytes = _reportService.ExportEmployeesToExcel(employees);
+
+            // Rapor indirme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Excel Raporu", "Personel listesi Excel raporu olarak indirildi");
+
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Personel_Listesi.xlsx");
         }
 
         // Yeni personel ekleme sayfasini acan metot
@@ -49,6 +68,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             if (isAdded)
             {
+                // Personel ekleme log kaydi
+                AuditLogger.LogAction(_context, HttpContext, "Personel İşlemi", "Yeni personel eklendi", $"Personel: {employee.FirstName} {employee.LastName} ({employee.Email})");
+
                 TempData["SuccessMessage"] = "Personel başarıyla eklenmiştir.";
                 return RedirectToAction("Index");
             }
@@ -87,6 +109,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             if (isUpdated)
             {
+                // Personel guncelleme log kaydi
+                AuditLogger.LogAction(_context, HttpContext, "Personel İşlemi", "Personel bilgileri güncellendi", $"Güncellenen Personel ID: {employee.Id}, E-posta: {employee.Email}");
+
                 TempData["SuccessMessage"] = "Personel bilgileri başarıyla güncellenmiştir.";
                 return RedirectToAction("Index");
             }
@@ -101,6 +126,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         public IActionResult ToggleStatus(int id)
         {
             _employeeService.ToggleStatus(id);
+
+            // Aktiflik durumu log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Personel İşlemi", "Personel aktiflik durumu değiştirildi", $"İşlem Yapılan Personel ID: {id}");
+
             TempData["SuccessMessage"] = "Personel aktiflik durumu güncellenmiştir.";
             return RedirectToAction("Index");
         }
@@ -113,6 +142,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             if (result)
             {
+                // Sifre sifirlama log kaydi
+                AuditLogger.LogAction(_context, HttpContext, "Personel İşlemi", "Personel şifresi sıfırlandı", $"Şifresi Sıfırlanan Personel ID: {id}");
+
                 TempData["SuccessMessage"] = "Personel şifresi başarıyla 123456 olarak sıfırlanmıştır.";
             }
             else

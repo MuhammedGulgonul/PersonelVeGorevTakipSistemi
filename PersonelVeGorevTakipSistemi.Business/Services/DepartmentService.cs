@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using PersonelVeGorevTakipSistemi.Core.Entities;
 using PersonelVeGorevTakipSistemi.DataAccess;
 
@@ -15,16 +16,26 @@ namespace PersonelVeGorevTakipSistemi.Business.Services
             _context = context;
         }
 
-        // Tüm departmanları listeler
+        // Tüm departmanları personelleriyle birlikte listeler
         public List<Department> GetAll()
         {
-            return _context.Departments.ToList();
+            return _context.Departments
+                .Include(d => d.Employees)
+                .ToList();
         }
 
         // Id değerine göre tek bir departman getirir
         public Department GetById(int id)
         {
             return _context.Departments.Find(id);
+        }
+
+        // Id değerine göre departmanı personelleriyle birlikte detaylı getirir
+        public Department GetWithEmployees(int id)
+        {
+            return _context.Departments
+                .Include(d => d.Employees)
+                .FirstOrDefault(d => d.Id == id);
         }
 
         // Yeni departman ekler

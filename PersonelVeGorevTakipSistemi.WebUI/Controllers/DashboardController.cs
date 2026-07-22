@@ -13,12 +13,14 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         private readonly TaskService _taskService;
         private readonly EmployeeService _employeeService;
         private readonly DepartmentService _departmentService;
+        private readonly AnnouncementService _announcementService;
 
-        public DashboardController(TaskService taskService, EmployeeService employeeService, DepartmentService departmentService)
+        public DashboardController(TaskService taskService, EmployeeService employeeService, DepartmentService departmentService, AnnouncementService announcementService)
         {
             _taskService = taskService;
             _employeeService = employeeService;
             _departmentService = departmentService;
+            _announcementService = announcementService;
         }
 
         // Dashboard ana sayfasini acan ve istatistikleri hesaplayan metot
@@ -43,6 +45,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             ViewBag.LowPriority = tasks.Count(t => t.Priority == TaskPriority.Low);
             ViewBag.MediumPriority = tasks.Count(t => t.Priority == TaskPriority.Medium);
             ViewBag.HighPriority = tasks.Count(t => t.Priority == TaskPriority.High);
+
+            // Duyurular ve Geciken Gorevler
+            ViewBag.Announcements = _announcementService.GetActiveAnnouncements();
+            ViewBag.OverdueTasksCount = tasks.Count(t => t.DueDate < System.DateTime.Today && t.Status != TaskState.Completed);
 
             return View();
         }

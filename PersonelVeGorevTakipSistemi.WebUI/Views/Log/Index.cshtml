@@ -1,30 +1,99 @@
+@model List<PersonelVeGorevTakipSistemi.Core.Entities.Log>
 @{
-    ViewData["Title"] = "Özel Sistem Günlükleri";
+    ViewData["Title"] = "Sistem İşlem Günlükleri";
 }
 
 <div class="container mt-4">
-    <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-header bg-dark text-white py-3 rounded-top-3">
-            <h5 class="card-title mb-0 fw-bold">
-                <i class="bi bi-shield-lock-fill text-warning me-2"></i> Özel Sistem Günlükleri (Loglar)
-            </h5>
+    <!-- Baslik ve Temizle Butonu -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Sistem İşlem ve Hareket Günlükleri (Loglar)</h2>
+            <span class="text-secondary small">Kullanıcıların sistemde yaptığı işlemlerin ve oluşan hataların detaylı takip geçmişi.</span>
         </div>
-        <div class="card-body p-4 text-center">
-            <div class="py-5">
-                <i class="bi bi-clock-history text-muted" style="font-size: 4rem;"></i>
-                <h4 class="fw-bold text-dark mt-3">Sistem Log İzleme Ekranı</h4>
-                <p class="text-secondary col-md-8 mx-auto mt-2">
-                    Bu panel, yalnızca <strong>Yönetici</strong> yetkisine sahip kullanıcıların görebileceği ve doğrudan <code>/Log</code> adresi üzerinden erişilebilen gizli bir alandır. Üst menüde (Navbar) bağlantısı bulunmaz.
-                </p>
-                <div class="alert alert-warning border-0 col-md-6 mx-auto mt-4" role="alert">
-                    <i class="bi bi-info-circle-fill me-2"></i> <strong>Staj Yol Haritası Bilgisi:</strong> Bu modül ve loglama veri altyapısı <strong>7. Hafta</strong> çalışmaları kapsamında aktif hale getirilecektir.
+        @if (Model != null && Model.Any())
+        {
+            <form asp-action="Clear" method="post" onsubmit="return confirm('Tüm işlem geçmişini kalıcı olarak silmek istediğinizden emin misiniz?');">
+                <button type="submit" class="btn btn-outline-danger px-3 py-2">
+                    <i class="bi bi-trash-fill me-1"></i> Günlüğü Temizle
+                </button>
+            </form>
+        }
+    </div>
+
+    <!-- Basari Bildirimleri -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+        </div>
+    }
+
+    <!-- Log Listesi -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-shield-check text-success" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold text-dark mt-3">Günlük Boş!</h5>
+                    <p class="text-secondary col-md-6 mx-auto mb-0">
+                        Sistemde kayıtlı herhangi bir hareket geçmişi veya hata günlüğü kaydı bulunmamaktadır.
+                    </p>
                 </div>
-                <div class="mt-4">
-                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-dark px-4 py-2">
-                        Dashboard'a Geri Dön
-                    </a>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 15%;" class="text-center">Tarih / Saat</th>
+                                <th style="width: 15%;" class="text-center">İşlem Türü</th>
+                                <th style="width: 55%;">Açıklama</th>
+                                <th style="width: 15%;" class="text-center">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model)
+                            {
+                                string badgeClass = "bg-secondary";
+                                if (log.LogLevel == "Giriş/Çıkış") badgeClass = "bg-info text-dark";
+                                else if (log.LogLevel == "Görev İşlemi") badgeClass = "bg-primary text-white";
+                                else if (log.LogLevel == "Personel İşlemi") badgeClass = "bg-success text-white";
+                                else if (log.LogLevel == "Departman İşlemi") badgeClass = "bg-warning text-dark";
+                                else if (log.LogLevel == "Dosya İşlemi") badgeClass = "bg-dark text-white";
+                                else if (log.LogLevel.Contains("Rapor")) badgeClass = "bg-teal text-white"; // Yesilimsimsi mavi
+                                else if (log.LogLevel.Contains("Hata")) badgeClass = "bg-danger text-white";
+
+                                <tr>
+                                    <td class="text-center small text-secondary fw-semibold">@log.TimeStamp.ToString("dd.MM.yyyy HH:mm:ss")</td>
+                                    <td class="text-center">
+                                        <span class="badge @badgeClass px-2.5 py-1.5 fw-bold" style="font-size: 10px;">@log.LogLevel</span>
+                                    </td>
+                                    <td class="fw-semibold text-dark text-break">@log.Message</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-outline-secondary btn-sm px-2.5 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#log-@log.Id" aria-expanded="false" style="font-size: 11.5px;">
+                                            <i class="bi bi-eye me-1"></i> Detay
+                                        </button>
+                                    </td>
+                                </tr>
+                                <!-- Collapse Satiri (Hata Detayi / Stack Trace veya Kullanici Bilgisi) -->
+                                <tr class="collapse" id="log-@log.Id">
+                                    <td colspan="4" class="bg-light p-3">
+                                        <div class="border rounded p-3 bg-white shadow-sm">
+                                            <h6 class="fw-bold @(log.LogLevel.Contains("Hata") ? "text-danger" : "text-dark") border-bottom pb-2 mb-2" style="font-size: 12.5px;">
+                                                <i class="bi @(log.LogLevel.Contains("Hata") ? "bi-bug" : "bi-info-circle") me-1"></i> Günlük Detay Bilgisi
+                                            </h6>
+                                            <pre class="m-0 text-dark small text-start text-wrap" style="font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11.5px; white-space: pre-wrap; word-break: break-all;">@log.Exception</pre>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </div>

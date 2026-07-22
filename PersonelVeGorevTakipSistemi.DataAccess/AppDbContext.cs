@@ -18,6 +18,8 @@ namespace PersonelVeGorevTakipSistemi.DataAccess
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Task> Tasks { get; set; }
         public DbSet<TaskFile> TaskFiles { get; set; }
+        public DbSet<TaskComment> TaskComments { get; set; }
+        public DbSet<Announcement> Announcements { get; set; }
         public DbSet<Log> Logs { get; set; }
 
         // Veritabanı tablolarının detaylı yapılandırmalarını ve başlangıç verilerini (Seed Data) burada tanımlıyoruz

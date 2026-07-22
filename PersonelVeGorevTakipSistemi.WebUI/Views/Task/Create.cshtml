@@ -64,7 +64,7 @@
                             </div>
 
                             <!-- Atanacak Personel -->
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-6 mb-3">
                                 <label asp-for="EmployeeId" class="form-label fw-semibold text-secondary">Atanacak Personel</label>
                                 <select asp-for="EmployeeId" class="form-select py-2" required>
                                     <option value="">Personel Seçiniz</option>
@@ -77,6 +77,17 @@
                                     }
                                 </select>
                                 <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Görünürlük Seviyesi -->
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Visibility" class="form-label fw-semibold text-secondary">Görünürlük / Gizlilik</label>
+                                <select asp-for="Visibility" class="form-select py-2" required>
+                                    <option value="Private">🔒 Özel (Sadece Sorumlusu & Yönetici)</option>
+                                    <option value="Department">🏢 Departmana Açık (Tüm Departman Ekibi)</option>
+                                    <option value="Public">🌐 Herkese Açık (Tüm Şirket)</option>
+                                </select>
+                                <span asp-validation-for="Visibility" class="text-danger"></span>
                             </div>
                         </div>
 

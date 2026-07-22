@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonelVeGorevTakipSistemi.Business.Services;
 using PersonelVeGorevTakipSistemi.WebUI.Models;
+using PersonelVeGorevTakipSistemi.DataAccess;
+using PersonelVeGorevTakipSistemi.WebUI.Helpers;
 
 namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 {
@@ -14,10 +16,12 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
     public class AccountController : Controller
     {
         private readonly AuthService _authService;
+        private readonly AppDbContext _context;
 
-        public AccountController(AuthService authService)
+        public AccountController(AuthService authService, AppDbContext context)
         {
             _authService = authService;
+            _context = context;
         }
 
         // Giriş yapma ekranını gösteren metot
@@ -63,6 +67,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
                 new ClaimsPrincipal(claimsIdentity)
             );
 
+            // Basarili giris log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Giriş/Çıkış", "Sisteme giriş yapıldı", $"Kullanıcı Rolü: {employee.Role}");
+
             return RedirectToAction("Index", "Home");
         }
 
@@ -70,6 +77,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
+            // Cikis log kaydi (SignOut yapilmadan once bilgiler HttpContext'ten okunabilsin diye once logluyoruz)
+            AuditLogger.LogAction(_context, HttpContext, "Giriş/Çıkış", "Sistemden çıkış yapıldı");
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Account");
         }
@@ -106,6 +116,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             if (result)
             {
+                // Şifre değişim log kaydı
+                AuditLogger.LogAction(_context, HttpContext, "Giriş/Çıkış", "Şifre başarıyla değiştirildi");
+
                 // Başarılı uyarısı göstermek için TempData kullanıyoruz
                 TempData["SuccessMessage"] = "Şifreniz başarıyla güncellenmiştir.";
                 return RedirectToAction("Index", "Home");
@@ -142,6 +155,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             if (result)
             {
+                // Şifre sıfırlama talebi log kaydı
+                AuditLogger.LogAction(_context, HttpContext, "Giriş/Çıkış", $"Şifre sıfırlama talebi oluşturuldu", $"Talep Edilen E-posta: {model.Email}");
+
                 // Talep başarılıysa ekranda göstereceğimiz başarı mesajını hazırlıyoruz
                 ViewBag.SuccessMessage = "Şifre sıfırlama talebiniz yöneticiye iletilmiştir. Geçici şifrenizi öğrenmek için lütfen yöneticinizle iletişime geçin.";
                 return View();

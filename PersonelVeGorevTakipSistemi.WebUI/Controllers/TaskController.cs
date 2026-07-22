@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using PersonelVeGorevTakipSistemi.Business.Services;
 using PersonelVeGorevTakipSistemi.Core.Enums;
 using Task = PersonelVeGorevTakipSistemi.Core.Entities.Task;
-
+using TaskComment = PersonelVeGorevTakipSistemi.Core.Entities.TaskComment;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using PersonelVeGorevTakipSistemi.DataAccess;
+using PersonelVeGorevTakipSistemi.WebUI.Helpers;
 
 namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 {
@@ -22,14 +24,20 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         private readonly DepartmentService _departmentService;
         private readonly FileService _fileService;
         private readonly IWebHostEnvironment _environment;
+        private readonly ReportService _reportService;
+        private readonly AnnouncementService _announcementService;
+        private readonly AppDbContext _context;
 
-        public TaskController(TaskService taskService, EmployeeService employeeService, DepartmentService departmentService, FileService fileService, IWebHostEnvironment environment)
+        public TaskController(TaskService taskService, EmployeeService employeeService, DepartmentService departmentService, FileService fileService, IWebHostEnvironment environment, ReportService reportService, AnnouncementService announcementService, AppDbContext context)
         {
             _taskService = taskService;
             _employeeService = employeeService;
             _departmentService = departmentService;
             _fileService = fileService;
             _environment = environment;
+            _reportService = reportService;
+            _announcementService = announcementService;
+            _context = context;
         }
 
         // Giriş yapan kullanıcının veritabanındaki Id değerini döndürür
@@ -42,6 +50,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         [HttpGet]
         public IActionResult Index(TaskState? status, TaskPriority? priority, int? departmentId)
         {
+            // Son teslim tarihi 7 günü geçmiş tamamlanan görevleri otomatik temizliyoruz
+            _taskService.CleanUpOldCompletedTasks();
+
             // Kullanıcının rolüne göre görevleri çekiyoruz
             var tasks = IsYönetici ? _taskService.GetAll() : _taskService.GetByEmployeeId(CurrentUserId);
 
@@ -66,6 +77,7 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             ViewBag.SelectedStatus = status;
             ViewBag.SelectedPriority = priority;
             ViewBag.SelectedDepartmentId = departmentId;
+            ViewBag.Announcements = _announcementService.GetActiveAnnouncements();
 
             return View(tasks);
         }
@@ -100,6 +112,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             }
 
             _taskService.Add(task);
+
+            // Gorev olusturma log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Görev İşlemi", "Yeni görev oluşturuldu", $"Görev Başlığı: {task.Title}, Atanan Personel ID: {task.EmployeeId}");
+
             TempData["SuccessMessage"] = "Görev başarıyla oluşturulmuş ve personele atanmıştır.";
             return RedirectToAction("Index");
         }
@@ -139,6 +155,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             }
 
             _taskService.Update(task);
+
+            // Gorev guncelleme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Görev İşlemi", "Görev güncellendi", $"Görev ID: {task.Id}, Başlık: {task.Title}");
+
             TempData["SuccessMessage"] = "Görev başarıyla güncellenmiştir.";
             return RedirectToAction("Index");
         }
@@ -168,6 +188,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             _taskService.UpdateStatus(id, status);
 
+            // Gorev durum guncelleme log kaydi
+            string statusText = status == TaskState.Pending ? "Yapılacak" : (status == TaskState.InProgress ? "Yapılıyor" : "Tamamlandı");
+            AuditLogger.LogAction(_context, HttpContext, "Görev İşlemi", "Görev durumu güncellendi", $"Görev ID: {id}, Yeni Durum: {statusText}");
+
             // İstek AJAX ile yapıldıysa kartın güncel HTML parçacığını (butonları yenilenmiş olarak) dönüyoruz
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
@@ -189,6 +213,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             }
 
             _taskService.Delete(id);
+
+            // Gorev silme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Görev İşlemi", "Görev tamamen silindi", $"Silinen Görev ID: {id}");
+
             TempData["SuccessMessage"] = "Görev başarıyla silinmiştir.";
             return RedirectToAction("Index");
         }
@@ -256,6 +284,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
             _fileService.SaveFile(taskId, file.FileName, file.ContentType, file.OpenReadStream(), uploadsFolder);
 
+            // Dosya yukleme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Dosya İşlemi", "Göreve dosya yüklendi", $"Görev ID: {taskId}, Dosya Adı: {file.FileName}");
+
             TempData["SuccessMessage"] = "Dosya başarıyla yüklenmiştir.";
             return RedirectToAction("Details", new { id = taskId });
         }
@@ -312,8 +343,102 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
             _fileService.DeleteFile(id, uploadsFolder);
 
+            // Dosya silme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Dosya İşlemi", "Görevden dosya silindi", $"Görev ID: {taskFile.TaskId}, Silinen Dosya Adı: {taskFile.FileName}");
+
             TempData["SuccessMessage"] = "Dosya başarıyla silinmiştir.";
             return RedirectToAction("Details", new { id = taskFile.TaskId });
+        }
+
+        // Görevlerin PDF raporunu üreten ve indiren metot
+        [HttpGet]
+        public IActionResult ExportPdf()
+        {
+            List<Task> tasks;
+            if (IsYönetici)
+            {
+                tasks = _taskService.GetAll();
+            }
+            else
+            {
+                tasks = _taskService.GetByEmployeeId(CurrentUserId);
+            }
+
+            var fileBytes = _reportService.ExportTasksToPdf(tasks);
+
+            // PDF rapor indirme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "PDF Raporu", "Görev listesi PDF raporu olarak indirildi");
+
+            return File(fileBytes, "application/pdf", "Gorev_Raporu.pdf");
+        }
+
+        // Göreve yeni yorum ekleme
+        [HttpPost]
+        public IActionResult AddComment(int taskId, string commentText)
+        {
+            if (string.IsNullOrWhiteSpace(commentText))
+            {
+                TempData["ErrorMessage"] = "Yorum metni boş olamaz.";
+                return RedirectToAction("Details", new { id = taskId });
+            }
+
+            var task = _taskService.GetById(taskId);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            // Güvenlik: Çalışan sadece kendi görevine yorum yapabilir
+            if (!IsYönetici && task.EmployeeId != CurrentUserId)
+            {
+                TempData["ErrorMessage"] = "Bu göreve yorum yazma yetkiniz bulunmamaktadır.";
+                return RedirectToAction("Index");
+            }
+
+            var comment = new TaskComment
+            {
+                TaskId = taskId,
+                EmployeeId = CurrentUserId,
+                CommentText = commentText.Trim()
+            };
+
+            _taskService.AddComment(comment);
+
+            AuditLogger.LogAction(_context, HttpContext, "Görev İşlemi", "Göreve yeni yorum eklendi", $"Görev ID: {taskId}");
+
+            TempData["SuccessMessage"] = "Yorumunuz başarıyla eklendi.";
+            return RedirectToAction("Details", new { id = taskId });
+        }
+
+        // Görevden yorum silme
+        [HttpPost]
+        public IActionResult DeleteComment(int commentId, int taskId)
+        {
+            var task = _taskService.GetById(taskId);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            var comment = task.TaskComments.FirstOrDefault(c => c.Id == commentId);
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            // Güvenlik: Yorumu yapan kişi veya Yönetici silebilir
+            if (!IsYönetici && comment.EmployeeId != CurrentUserId)
+            {
+                TempData["ErrorMessage"] = "Bu yorumu silme yetkiniz bulunmamaktadır.";
+                return RedirectToAction("Details", new { id = taskId });
+            }
+
+            _taskService.DeleteComment(commentId);
+
+            AuditLogger.LogAction(_context, HttpContext, "Görev İşlemi", "Görev yorumu silindi", $"Görev ID: {taskId}, Yorum ID: {commentId}");
+
+            TempData["SuccessMessage"] = "Yorum silindi.";
+            return RedirectToAction("Details", new { id = taskId });
         }
     }
 }

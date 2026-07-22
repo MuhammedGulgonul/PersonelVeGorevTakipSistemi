@@ -253,12 +253,60 @@ body {
   border-color: #ef4444 !important;
 }
 
-/* 9. Görev Kartları Sürüklenebilir Fare İmleçleri (El Simgesi) */
-.kanban-column-cards .card {
+/* 9. Görev Kartları Sürüklenebilir Fare İmleçleri (El Simgesi - Sadece Yetkili Yöneticiye) */
+.kanban-column-cards .card.draggable-card {
   cursor: grab !important;
   cursor: -webkit-grab !important; /* Safari uyumluluğu */
 }
-.kanban-column-cards .card:active {
+.kanban-column-cards .card.draggable-card:active {
   cursor: grabbing !important;
   cursor: -webkit-grabbing !important;
+}
+
+/* 10. Kullanıcı Baş Harf Avatarı (User Initials Avatar) */
+.user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.user-avatar-sm {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+}
+.user-avatar-md {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+}
+.user-avatar-lg {
+  width: 44px;
+  height: 44px;
+  font-size: 16px;
+}
+
+/* 11. Duyuru Kartları ve Yorum Kutuları */
+.announcement-banner {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+}
+.comment-bubble {
+  background-color: #fcfbf9;
+  border: 1px solid #e7e4dc;
+  border-radius: 10px;
+}
+
+/* 12. Modal Kararma ve Z-Index Düzeltmesi */
+.modal {
+  z-index: 1065 !important;
+}
+.modal-backdrop {
+  z-index: 1050 !important;
 }

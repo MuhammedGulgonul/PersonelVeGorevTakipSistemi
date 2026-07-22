@@ -8,9 +8,14 @@
     <!-- Baslik ve Yeni Ekle Butonu -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-dark mb-0">Personeller</h2>
-        <a asp-action="Create" asp-controller="Employee" class="btn btn-primary px-4 py-2">
-            <i class="bi bi-person-plus me-1"></i> Yeni Personel Ekle
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="ExportExcel" asp-controller="Employee" class="btn btn-outline-success px-3 py-2">
+                <i class="bi bi-file-earmark-excel me-1"></i> Excel'e Aktar
+            </a>
+            <a asp-action="Create" asp-controller="Employee" class="btn btn-primary px-3 py-2">
+                <i class="bi bi-person-plus me-1"></i> Yeni Personel Ekle
+            </a>
+        </div>
     </div>
 
     <!-- Basari veya Hata Mesajlari -->
@@ -63,13 +68,23 @@
                                 <tr>
                                     <td class="px-4 fw-semibold text-secondary">#@item.Id</td>
                                     <td>
-                                        <div class="fw-bold text-dark">@item.FirstName @item.LastName</div>
-                                        @if (item.IsPasswordResetRequested)
-                                        {
-                                            <span class="badge bg-warning text-dark mt-1" style="font-size: 11px;">
-                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Şifre Talebi Var!
-                                            </span>
-                                        }
+                                        <div class="d-flex align-items-center">
+                                            @{
+                                                string eIn1 = !string.IsNullOrEmpty(item.FirstName) ? item.FirstName.Substring(0, 1) : "";
+                                                string eIn2 = !string.IsNullOrEmpty(item.LastName) ? item.LastName.Substring(0, 1) : "";
+                                                string eInitials = (eIn1 + eIn2).ToUpper();
+                                            }
+                                            <span class="user-avatar user-avatar-md me-2">@eInitials</span>
+                                            <div>
+                                                <div class="fw-bold text-dark">@item.FirstName @item.LastName</div>
+                                                @if (item.IsPasswordResetRequested)
+                                                {
+                                                    <span class="badge bg-warning text-dark mt-1" style="font-size: 11px;">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Şifre Talebi Var!
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="text-secondary">@item.Email</td>
                                     <td class="text-secondary">@item.Title</td>
@@ -92,30 +107,32 @@
                                         }
                                     </td>
                                     <td class="px-4 text-end">
-                                        <!-- Şifre Sıfırlama Butonu (Sadece Talep Varsa Görünür) -->
-                                        @if (item.IsPasswordResetRequested)
-                                        {
-                                            <form asp-action="ResetPassword" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bu personelin şifresini 123456 olarak sıfırlamak istediğinizden emin misiniz?');">
-                                                <button type="submit" class="btn btn-sm btn-warning text-dark me-1" title="Şifreyi 123456 Yap">
-                                                    Şifre Sıfırla
-                                                </button>
-                                            </form>
-                                        }
+                                        <div class="d-inline-flex align-items-center justify-content-end gap-2">
+                                            <!-- Şifre Sıfırlama Butonu (Sadece Talep Varsa Görünür) -->
+                                            @if (item.IsPasswordResetRequested)
+                                            {
+                                                <form asp-action="ResetPassword" asp-route-id="@item.Id" method="post" class="d-inline m-0" onsubmit="return confirm('Bu personelin şifresini 123456 olarak sıfırlamak istediğinizden emin misiniz?');">
+                                                    <button type="submit" class="btn btn-sm btn-warning text-dark" title="Şifreyi 123456 Yap">
+                                                        Şifre Sıfırla
+                                                    </button>
+                                                </form>
+                                            }
 
-                                        <!-- Düzenle Butonu -->
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">
-                                            Düzenle
-                                        </a>
+                                            <!-- Düzenle Butonu -->
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                                Düzenle
+                                            </a>
 
-                                        <!-- Aktiflik Durum Değiştirme Butonu (Kendi kendini pasif yapmasın diye kontrol) -->
-                                        @if (User.Identity.Name != item.FirstName + " " + item.LastName)
-                                        {
-                                            <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")">
-                                                    @(item.IsActive ? "Pasifleştir" : "Aktifleştir")
-                                                </button>
-                                            </form>
-                                        }
+                                            <!-- Aktiflik Durum Değiştirme Butonu (Kendi kendini pasif yapmasın diye kontrol) -->
+                                            @if (User.Identity.Name != item.FirstName + " " + item.LastName)
+                                            {
+                                                <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="d-inline m-0">
+                                                    <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                        @(item.IsActive ? "Pasifleştir" : "Aktifleştir")
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
                                     </td>
                                 </tr>
                             }

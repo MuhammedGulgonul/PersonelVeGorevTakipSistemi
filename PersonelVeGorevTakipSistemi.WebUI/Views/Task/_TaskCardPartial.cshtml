@@ -7,7 +7,7 @@
     bool isOverdue = Model.DueDate < DateTime.Today && Model.Status != TaskState.Completed;
 }
 
-<div class="card shadow-sm border-0 mb-2 bg-white rounded-3" data-id="@Model.Id">
+<div class="card shadow-sm border-0 mb-2 bg-white rounded-3 @(isYönetici ? "draggable-card" : "")" data-id="@Model.Id">
     <div class="card-body p-2">
         <!-- Kart Üst Kısım: Öncelik ve Yönetici İşlemleri -->
         <div class="d-flex justify-content-between align-items-start mb-1">
@@ -23,6 +23,19 @@
                 else if (Model.Priority == TaskPriority.High)
                 {
                     <span class="badge bg-danger text-white" style="font-size: 10px;">Yüksek</span>
+                }
+
+                @if (Model.Visibility == TaskVisibility.Private)
+                {
+                    <span class="badge bg-light text-dark border ms-1" style="font-size: 10px;" title="Sadece Sorumlusu & Yönetici">🔒 Özel</span>
+                }
+                else if (Model.Visibility == TaskVisibility.Department)
+                {
+                    <span class="badge bg-info text-dark ms-1" style="font-size: 10px;" title="Tüm Departman Ekibi">🏢 Departman</span>
+                }
+                else if (Model.Visibility == TaskVisibility.Public)
+                {
+                    <span class="badge bg-primary text-white ms-1" style="font-size: 10px;" title="Tüm Şirket">🌐 Açık</span>
                 }
             </span>
 
@@ -53,18 +66,37 @@
 
         <!-- Sorumlu Personel ve Son Teslim Tarihi -->
         <div class="d-flex flex-column gap-1 mb-2 pt-1 border-top" style="font-size: 11px; border-top-color: #f1f0ee !important;">
-            <div class="d-flex align-items-center text-dark">
-                <i class="bi bi-person me-2 text-secondary"></i>
-                <span class="fw-semibold">@Model.Employee.FirstName @Model.Employee.LastName</span>
-                <span class="text-muted ms-1">(@(Model.Employee.Department?.Name ?? "Departmansız"))</span>
+            <div class="d-flex align-items-center justify-content-between text-dark">
+                <div class="d-flex align-items-center">
+                    @{
+                        string initial1 = !string.IsNullOrEmpty(Model.Employee?.FirstName) ? Model.Employee.FirstName.Substring(0, 1) : "";
+                        string initial2 = !string.IsNullOrEmpty(Model.Employee?.LastName) ? Model.Employee.LastName.Substring(0, 1) : "";
+                        string initials = (initial1 + initial2).ToUpper();
+                    }
+                    <span class="user-avatar user-avatar-sm me-2">@initials</span>
+                    <span class="fw-semibold">@Model.Employee.FirstName @Model.Employee.LastName</span>
+                </div>
+                <span class="text-muted small">(@(Model.Employee.Department?.Name ?? "-"))</span>
             </div>
-            <div class="d-flex align-items-center @(isOverdue ? "text-danger fw-bold" : "text-secondary")">
-                <i class="bi bi-calendar-event me-2"></i>
-                <span>Son Tarih: @Model.DueDate.ToString("dd.MM.yyyy")</span>
-                @if (isOverdue)
-                {
-                    <span class="badge bg-danger text-white ms-1" style="font-size: 8px;">Gecikti!</span>
-                }
+            <div class="d-flex align-items-center justify-content-between mt-1">
+                <div class="d-flex align-items-center @(isOverdue ? "text-danger fw-bold" : "text-secondary")">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    <span>@Model.DueDate.ToString("dd.MM.yyyy")</span>
+                    @if (isOverdue)
+                    {
+                        <span class="badge bg-danger text-white ms-1" style="font-size: 8px;">Gecikti!</span>
+                    }
+                </div>
+                <div class="d-flex align-items-center gap-2 text-secondary small">
+                    @if (Model.TaskFiles != null && Model.TaskFiles.Any())
+                    {
+                        <span title="@Model.TaskFiles.Count() Dosya"><i class="bi bi-paperclip me-0.5"></i>@Model.TaskFiles.Count()</span>
+                    }
+                    @if (Model.TaskComments != null && Model.TaskComments.Any())
+                    {
+                        <span title="@Model.TaskComments.Count() Yorum"><i class="bi bi-chat-text me-0.5"></i>@Model.TaskComments.Count()</span>
+                    }
+                </div>
             </div>
         </div>
 

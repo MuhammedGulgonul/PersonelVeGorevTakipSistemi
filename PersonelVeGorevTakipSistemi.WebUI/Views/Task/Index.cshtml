@@ -7,40 +7,110 @@
     bool isYönetici = User.IsInRole("Yönetici");
 }
 
-<div class="container mt-2">
     <!-- Baslik ve Yeni Gorev Ekle Butonu (Sadece Yonetici) -->
-    <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="d-flex justify-content-between align-items-center pt-3 mt-2 mb-3">
         <div>
             <h2 class="fw-bold text-dark mb-0" style="font-size: 24px;">Görev Panosu</h2>
         </div>
-        @if (isYönetici)
-        {
-            <a asp-action="Create" asp-controller="Task" class="btn btn-primary px-3 py-1.5" style="font-size: 14px;">
-                <i class="bi bi-plus-square me-1"></i> Yeni Görev Oluştur
+        <div class="d-flex gap-2">
+            @if (isYönetici)
+            {
+                <button type="button" class="btn btn-outline-warning text-dark px-3 py-1.5" onclick="openAnnouncementModal()" style="font-size: 14px;">
+                    <i class="bi bi-megaphone me-1"></i> Yeni Duyuru
+                </button>
+            }
+            <a asp-action="ExportPdf" asp-controller="Task" class="btn btn-outline-danger px-3 py-1.5" style="font-size: 14px;">
+                <i class="bi bi-file-earmark-pdf me-1"></i> PDF Raporu İndir
             </a>
-        }
+            @if (isYönetici)
+            {
+                <a asp-action="Create" asp-controller="Task" class="btn btn-primary px-3 py-1.5" style="font-size: 14px;">
+                    <i class="bi bi-plus-square me-1"></i> Yeni Görev Oluştur
+                </a>
+            }
+        </div>
     </div>
 
     <!-- Mesaj Bildirimleri -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-2 py-2" role="alert">
-            @TempData["SuccessMessage"]
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
             <button type="button" class="btn-close py-2.5" data-bs-dismiss="alert" aria-label="Kapat"></button>
         </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-2 py-2" role="alert">
-            @TempData["ErrorMessage"]
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
             <button type="button" class="btn-close py-2.5" data-bs-dismiss="alert" aria-label="Kapat"></button>
         </div>
     }
 
-    <!-- Filtreleme Paneli -->
+    <!-- 1. ŞİRKET İÇİ DUYURULAR BÖLÜMÜ -->
+    @if (ViewBag.Announcements != null && ((IEnumerable<dynamic>)ViewBag.Announcements).Any())
+    {
+        <div class="mb-3">
+            @foreach (var ann in ViewBag.Announcements)
+            {
+                <div class="alert announcement-banner shadow-sm border-0 rounded-3 mb-2 py-2 px-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-warning text-dark me-2" style="font-size: 10px;">DUYURU</span>
+                        <strong class="text-dark">@ann.Title:</strong> <span class="text-secondary small ms-1">@ann.Content</span>
+                        <span class="text-muted small ms-2" style="font-size: 10px;">(@ann.CreatedDate.ToString("dd.MM.yyyy HH:mm"))</span>
+                    </div>
+                    @if (isYönetici)
+                    {
+                        <form asp-action="Delete" asp-controller="Announcement" asp-route-id="@ann.Id" method="post" class="m-0" onsubmit="return confirm('Bu duyuruyu kaldırmak istediğinizden emin misiniz?');">
+                            <button type="submit" class="btn btn-link text-secondary p-0 border-0 ms-2" title="Duyuruyu Kaldır">
+                                <i class="bi bi-x-circle fs-6"></i>
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- 2. SON TESLİMİ YAKLAŞAN / GECİKEN GÖREVLER UYARI WIDGET'I -->
+    @{
+        var overdueTasks = Model.Where(t => t.DueDate < DateTime.Today && t.Status != TaskState.Completed).ToList();
+        var dueSoonTasks = Model.Where(t => t.DueDate.Date == DateTime.Today && t.Status != TaskState.Completed).ToList();
+    }
+    @if (overdueTasks.Any() || dueSoonTasks.Any())
+    {
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-3 py-2 px-3 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-alarm-fill text-warning fs-5 me-2"></i>
+                <div>
+                    <strong class="text-dark">Görev Teslim Zamanı Uyarısı:</strong>
+                    @if (overdueTasks.Any())
+                    {
+                        <span class="badge bg-danger text-white ms-1">@overdueTasks.Count() adet geciken görev var!</span>
+                    }
+                    @if (dueSoonTasks.Any())
+                    {
+                        <span class="badge bg-warning text-dark ms-1">@dueSoonTasks.Count() adet teslim tarihi bugün olan görev var!</span>
+                    }
+                </div>
+            </div>
+            <span class="text-secondary small">Lütfen ilgili görevleri kontrol ediniz.</span>
+        </div>
+    }
+
+    <!-- Filtreleme ve Anlık Canlı Arama Paneli -->
     <div class="card shadow-sm border-0 rounded-3 mb-3 bg-light">
         <div class="card-body py-2 px-3">
-            <form method="get" asp-action="Index" class="row g-3 align-items-center">
+            <form method="get" asp-action="Index" class="row g-2 align-items-center">
+                <!-- Anlık Canlı Arama Kutusu -->
+                <div class="col-md-3">
+                    <label class="form-label text-secondary small fw-bold">Anlık Arama</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="liveSearchInput" class="form-select form-select-sm border-start-0" placeholder="Başlık veya içerik ara..." />
+                    </div>
+                </div>
+
                 <!-- Oncelik Filtresi -->
                 <div class="col-md-3">
                     <label class="form-label text-secondary small fw-bold">Öncelik Derecesi</label>
@@ -55,7 +125,7 @@
                 <!-- Departman Filtresi (Sadece Yoneticiye gosterilir) -->
                 @if (isYönetici)
                 {
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label text-secondary small fw-bold">Departman</label>
                         <select name="departmentId" class="form-select form-select-sm">
                             <option value="">Tümü</option>
@@ -71,7 +141,7 @@
                 }
 
                 <!-- Durum Filtresi -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label text-secondary small fw-bold">Durum</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">Tümü</option>
@@ -82,8 +152,8 @@
                 </div>
 
                 <!-- Butonlar -->
-                <div class="col-md-3 d-flex align-items-end pt-4">
-                    <button type="submit" class="btn btn-sm btn-primary w-50 me-2">Filtrele</button>
+                <div class="col-md-2 d-flex align-items-end pt-4">
+                    <button type="submit" class="btn btn-sm btn-primary w-50 me-1">Filtrele</button>
                     <a asp-action="Index" class="btn btn-sm btn-outline-secondary w-50">Temizle</a>
                 </div>
             </form>
@@ -152,7 +222,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <!-- Sürükle Bırak CSS Stilleri -->
 <style>
@@ -180,6 +249,7 @@
                 group: 'kanban', // Sütunların birbiri arasında kart alışverişi yapabilmesini sağlar
                 animation: 150,  // Milisaniye cinsinden yumuşak sürükleme animasyonu
                 ghostClass: 'sortable-ghost', // Sürüklerken arkada kalan boşluğun sınıfı
+                disabled: @(isYönetici ? "false" : "true"), // Yetkisiz personeller için sürükle-bırakı fiziksel olarak engeller
                 onEnd: function (evt) {
                     const cardEl = evt.item; // Sürüklenen HTML kartı
                     const taskId = cardEl.getAttribute('data-id');
@@ -257,5 +327,23 @@
         } else {
             parent.appendChild(item);
         }
+    }
+
+    // ANLIK CANLI ARAMA SCRIPT'İ
+    const liveSearchInput = document.getElementById("liveSearchInput");
+    if (liveSearchInput) {
+        liveSearchInput.addEventListener("keyup", function () {
+            const query = this.value.toLowerCase().trim();
+            const cards = document.querySelectorAll(".kanban-column-cards .card");
+
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    card.style.display = "";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        });
     }
 </script>

@@ -27,13 +27,18 @@ namespace PersonelVeGorevTakipSistemi.Business.Services
                 .ToList();
         }
 
-        // Belirli bir çalışana atanmış tüm görevleri departman bilgisiyle listeler
+        // Çalışana atanan veya departmanına/şirkete açık tüm görünür görevleri getirir
         public List<Task> GetByEmployeeId(int employeeId)
         {
+            var currentEmp = _context.Employees.Find(employeeId);
+            int currentDeptId = currentEmp?.DepartmentId ?? 0;
+
             return _context.Tasks
                 .Include(t => t.Employee)
                 .ThenInclude(e => e.Department)
-                .Where(t => t.EmployeeId == employeeId)
+                .Where(t => t.EmployeeId == employeeId 
+                         || (t.Visibility == Core.Enums.TaskVisibility.Department && t.Employee != null && t.Employee.DepartmentId == currentDeptId)
+                         || t.Visibility == Core.Enums.TaskVisibility.Public)
                 .ToList();
         }
 
@@ -44,7 +49,28 @@ namespace PersonelVeGorevTakipSistemi.Business.Services
                 .Include(t => t.Employee)
                 .ThenInclude(e => e.Department)
                 .Include(t => t.TaskFiles)
+                .Include(t => t.TaskComments)
+                .ThenInclude(c => c.Employee)
                 .FirstOrDefault(t => t.Id == id);
+        }
+
+        // Göreve yeni yorum ekler
+        public void AddComment(Core.Entities.TaskComment comment)
+        {
+            comment.CreatedDate = DateTime.Now;
+            _context.TaskComments.Add(comment);
+            _context.SaveChanges();
+        }
+
+        // Görevden yorum siler
+        public void DeleteComment(int commentId)
+        {
+            var comment = _context.TaskComments.Find(commentId);
+            if (comment != null)
+            {
+                _context.TaskComments.Remove(comment);
+                _context.SaveChanges();
+            }
         }
 
         // Yeni görev ekler
@@ -65,6 +91,7 @@ namespace PersonelVeGorevTakipSistemi.Business.Services
                 existingTask.Description = task.Description;
                 existingTask.Status = task.Status;
                 existingTask.Priority = task.Priority;
+                existingTask.Visibility = task.Visibility;
                 existingTask.DueDate = task.DueDate;
                 existingTask.EmployeeId = task.EmployeeId;
 
@@ -94,6 +121,22 @@ namespace PersonelVeGorevTakipSistemi.Business.Services
                 _context.Tasks.Remove(task);
                 _context.SaveChanges();
             }
+        }
+
+        // Son teslim tarihinin üzerinden 7 gün geçen tamamlanmış görevleri veritabanından otomatik siler
+        public int CleanUpOldCompletedTasks()
+        {
+            var thresholdDate = DateTime.Today.AddDays(-7);
+            var oldCompletedTasks = _context.Tasks
+                .Where(t => t.Status == TaskState.Completed && t.DueDate <= thresholdDate)
+                .ToList();
+
+            if (oldCompletedTasks.Any())
+            {
+                _context.Tasks.RemoveRange(oldCompletedTasks);
+                _context.SaveChanges();
+            }
+            return oldCompletedTasks.Count;
         }
     }
 }

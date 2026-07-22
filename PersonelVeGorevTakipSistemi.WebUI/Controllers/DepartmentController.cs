@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonelVeGorevTakipSistemi.Business.Services;
 using PersonelVeGorevTakipSistemi.Core.Entities;
+using PersonelVeGorevTakipSistemi.DataAccess;
+using PersonelVeGorevTakipSistemi.WebUI.Helpers;
 
 namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 {
@@ -10,10 +12,12 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
     public class DepartmentController : Controller
     {
         private readonly DepartmentService _departmentService;
+        private readonly AppDbContext _context;
 
-        public DepartmentController(DepartmentService departmentService)
+        public DepartmentController(DepartmentService departmentService, AppDbContext context)
         {
             _departmentService = departmentService;
+            _context = context;
         }
 
         // Departmanlari listeleyen sayfa
@@ -22,6 +26,18 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
         {
             var departments = _departmentService.GetAll();
             return View(departments);
+        }
+
+        // Departmanı ve bağlı çalışanlarını listeleyen detay sayfası
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            var department = _departmentService.GetWithEmployees(id);
+            if (department == null)
+            {
+                return NotFound();
+            }
+            return View(department);
         }
 
         // Yeni departman ekleme sayfasini acan metot
@@ -41,6 +57,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             }
 
             _departmentService.Add(department);
+
+            // Departman ekleme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Departman İşlemi", "Yeni departman oluşturuldu", $"Departman Adı: {department.Name}");
+
             TempData["SuccessMessage"] = "Departman başarıyla eklenmiştir.";
             return RedirectToAction("Index");
         }
@@ -67,6 +87,10 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
             }
 
             _departmentService.Update(department);
+
+            // Departman guncelleme log kaydi
+            AuditLogger.LogAction(_context, HttpContext, "Departman İşlemi", "Departman güncellendi", $"Departman ID: {department.Id}, Yeni Adı: {department.Name}");
+
             TempData["SuccessMessage"] = "Departman başarıyla güncellenmiştir.";
             return RedirectToAction("Index");
         }
@@ -79,6 +103,9 @@ namespace PersonelVeGorevTakipSistemi.WebUI.Controllers
 
             if (isDeleted)
             {
+                // Departman silme log kaydi
+                AuditLogger.LogAction(_context, HttpContext, "Departman İşlemi", "Departman silindi", $"Silinen Departman ID: {id}");
+
                 TempData["SuccessMessage"] = "Departman başarıyla silinmiştir.";
             }
             else

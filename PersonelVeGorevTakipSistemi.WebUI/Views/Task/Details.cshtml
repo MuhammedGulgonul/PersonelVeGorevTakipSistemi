@@ -58,7 +58,7 @@
             </div>
 
             <!-- Dosya Yukleme ve Listeleme Karti -->
-            <div class="card shadow-sm border-0 rounded-3 bg-white">
+            <div class="card shadow-sm border-0 rounded-3 mb-4 bg-white">
                 <div class="card-header bg-light py-3 border-0">
                     <h5 class="fw-bold text-dark mb-0"><i class="bi bi-paperclip me-2 text-primary"></i> Görev Dosyaları</h5>
                 </div>
@@ -125,6 +125,68 @@
                     }
                 </div>
             </div>
+
+            <!-- GÖREV YORUMLARI VE TARTIŞMA BÖLÜMÜ -->
+            <div class="card shadow-sm border-0 rounded-3 bg-white">
+                <div class="card-header bg-light py-3 border-0">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-chat-dots me-2 text-warning"></i> Görev Tartışması ve Yorumlar (@(Model.TaskComments?.Count ?? 0))
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Yorum Ekleme Formu -->
+                    <form asp-action="AddComment" asp-controller="Task" method="post" class="mb-4">
+                        <input type="hidden" name="taskId" value="@Model.Id" />
+                        <div class="mb-2">
+                            <textarea name="commentText" class="form-control" rows="3" placeholder="Görev ile ilgili notunuzu veya sorunuzu buraya yazabilirsiniz..." required></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-warning font-weight-bold px-4">
+                                <i class="bi bi-send me-1"></i> Yorum Gönder
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Yorum Listesi -->
+                    @if (Model.TaskComments == null || !Model.TaskComments.Any())
+                    {
+                        <div class="text-center py-4 bg-light rounded-3 text-secondary small">
+                            Bu görev için henüz yapılmış bir yorum yok. İlk yorumu siz yapın!
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var comment in Model.TaskComments.OrderByDescending(c => c.CreatedDate))
+                            {
+                                string cInitial1 = !string.IsNullOrEmpty(comment.Employee?.FirstName) ? comment.Employee.FirstName.Substring(0, 1) : "";
+                                string cInitial2 = !string.IsNullOrEmpty(comment.Employee?.LastName) ? comment.Employee.LastName.Substring(0, 1) : "";
+                                string cInitials = (cInitial1 + cInitial2).ToUpper();
+
+                                <div class="comment-bubble p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <span class="user-avatar user-avatar-md me-2">@cInitials</span>
+                                            <div>
+                                                <strong class="text-dark d-block">@comment.Employee?.FirstName @comment.Employee?.LastName</strong>
+                                                <span class="text-muted small" style="font-size: 11px;">@comment.CreatedDate.ToString("dd.MM.yyyy HH:mm")</span>
+                                            </div>
+                                        </div>
+                                        <form asp-action="DeleteComment" asp-controller="Task" method="post" onsubmit="return confirm('Yorumu silmek istediğinizden emin misiniz?');">
+                                            <input type="hidden" name="commentId" value="@comment.Id" />
+                                            <input type="hidden" name="taskId" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-link text-danger p-0 border-0" title="Yorumu Sil">
+                                                <i class="bi bi-trash small"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <p class="text-dark mb-0 text-break" style="font-size: 14px; white-space: pre-line;">@comment.CommentText</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
 
         <!-- SAĞ SÜTUN: KÜNYE BİLGİLERİ -->
@@ -168,6 +230,23 @@
                         }
                     </div>
 
+                    <!-- Görünürlük Bilgisi -->
+                    <div class="mb-3">
+                        <span class="text-secondary small d-block mb-1">Görünürlük Seviyesi</span>
+                        @if (Model.Visibility == TaskVisibility.Private)
+                        {
+                            <span class="badge bg-light text-dark border px-3 py-2 fs-6">🔒 Özel (Sadece Sorumlusu & Yönetici)</span>
+                        }
+                        else if (Model.Visibility == TaskVisibility.Department)
+                        {
+                            <span class="badge bg-info text-dark px-3 py-2 fs-6">🏢 Departmana Açık</span>
+                        }
+                        else if (Model.Visibility == TaskVisibility.Public)
+                        {
+                            <span class="badge bg-primary text-white px-3 py-2 fs-6">🌐 Herkese Açık</span>
+                        }
+                    </div>
+
                     <hr class="my-3 opacity-25" />
 
                     <!-- Gorev Baslangic Tarihi -->
@@ -192,9 +271,19 @@
 
                     <!-- Atanan Personel -->
                     <div class="mb-3">
-                        <span class="text-secondary small d-block">Sorumlu Personel</span>
-                        <span class="text-dark fw-bold d-block">@Model.Employee.FirstName @Model.Employee.LastName</span>
-                        <span class="text-muted small">@Model.Employee.Title</span>
+                        <span class="text-secondary small d-block mb-1">Sorumlu Personel</span>
+                        <div class="d-flex align-items-center">
+                            @{
+                                string empIn1 = !string.IsNullOrEmpty(Model.Employee?.FirstName) ? Model.Employee.FirstName.Substring(0, 1) : "";
+                                string empIn2 = !string.IsNullOrEmpty(Model.Employee?.LastName) ? Model.Employee.LastName.Substring(0, 1) : "";
+                                string empInitials = (empIn1 + empIn2).ToUpper();
+                            }
+                            <span class="user-avatar user-avatar-md me-2">@empInitials</span>
+                            <div>
+                                <span class="text-dark fw-bold d-block">@Model.Employee.FirstName @Model.Employee.LastName</span>
+                                <span class="text-muted small">@Model.Employee.Title</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Departman -->

@@ -68,7 +68,7 @@
                             </div>
 
                             <!-- Atanan Personel -->
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-6 mb-3">
                                 <label asp-for="EmployeeId" class="form-label fw-semibold text-secondary">Atanan Personel</label>
                                 <select asp-for="EmployeeId" class="form-select py-2" required>
                                     @if (ViewBag.Employees != null)
@@ -80,6 +80,17 @@
                                     }
                                 </select>
                                 <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Görünürlük Seviyesi -->
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Visibility" class="form-label fw-semibold text-secondary">Görünürlük / Gizlilik</label>
+                                <select asp-for="Visibility" class="form-select py-2" required>
+                                    <option value="Private" selected="@(Model.Visibility == TaskVisibility.Private ? "selected" : null)">🔒 Özel (Sadece Sorumlusu & Yönetici)</option>
+                                    <option value="Department" selected="@(Model.Visibility == TaskVisibility.Department ? "selected" : null)">🏢 Departmana Açık (Tüm Departman Ekibi)</option>
+                                    <option value="Public" selected="@(Model.Visibility == TaskVisibility.Public ? "selected" : null)">🌐 Herkese Açık (Tüm Şirket)</option>
+                                </select>
+                                <span asp-validation-for="Visibility" class="text-danger"></span>
                             </div>
                         </div>
 

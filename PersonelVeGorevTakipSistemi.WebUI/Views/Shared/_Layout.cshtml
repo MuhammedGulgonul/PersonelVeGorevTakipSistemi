@@ -38,6 +38,9 @@
                                 <li class="nav-item">
                                     <a class="nav-link" asp-controller="Task" asp-action="Index">Görevler</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Log" asp-action="Index">İşlem Günlükleri</a>
+                                </li>
                             }
                             else
                             {
@@ -51,8 +54,13 @@
                     {
                         <ul class="navbar-nav">
                             <li class="nav-item dropdown profile-dropdown">
+                                @{
+                                    string userName = User.Identity.Name ?? "";
+                                    string[] parts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                    string uInitials = parts.Length >= 2 ? (parts[0][0].ToString() + parts[parts.Length - 1][0].ToString()).ToUpper() : (userName.Length >= 2 ? userName.Substring(0, 2).ToUpper() : "U");
+                                }
                                 <a class="nav-link dropdown-toggle text-white fw-semibold d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle text-warning me-2"></i>
+                                    <span class="user-avatar user-avatar-sm me-2" style="background: linear-gradient(135deg, #eab308 0%, #d97706 100%); color: #1c1a18;">@uInitials</span>
                                     @User.Identity.Name
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2" aria-labelledby="userDropdown">
@@ -81,14 +89,58 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - PersonelVeGorevTakipSistemi.WebUI - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="border-top footer text-muted py-3">
+        <div class="container text-center small text-secondary">
+            &copy; 2026 Personel ve Görev Takip Sistemi. Tüm Hakları Saklıdır.
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @if (User.IsInRole("Yönetici"))
+    {
+        <!-- DUYURU EKLEME MODALI -->
+        <div class="modal fade" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <form asp-action="Create" asp-controller="Announcement" method="post">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title fw-bold" id="announcementModalLabel">
+                                <i class="bi bi-megaphone me-2 text-warning"></i>Yeni Duyuru Yayınla
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                        </div>
+                        <div class="modal-body text-start">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Duyuru Başlığı</label>
+                                <input type="text" name="title" class="form-control" placeholder="Örn: Cuma Günü Sistem Bakımı" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Duyuru İçeriği</label>
+                                <textarea name="content" class="form-control" rows="3" placeholder="Duyurunun detaylarını buraya yazınız..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="submit" class="btn btn-warning fw-bold px-4">Yayınla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openAnnouncementModal() {
+                var modalEl = document.getElementById('announcementModal');
+                if (modalEl) {
+                    var modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modalInstance.show();
+                }
+            }
+        </script>
+    }
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
